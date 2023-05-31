@@ -5,6 +5,7 @@ includelib msvcrt.lib
 extern exit: proc
 extern malloc: proc
 extern memset: proc
+extern fprintf: proc
 
 includelib canvas.lib
 extern BeginDrawing: proc
@@ -18,6 +19,7 @@ area_height EQU 610
 area DD 0
 window_title db "MINION RUSH 2D",0
 counter DD 0 
+end_game_c dd 2
 
 arg1 EQU 8
 arg2 EQU 12
@@ -27,7 +29,7 @@ arg4 EQU 20
 positiony dd 520
 positionx dd 43
 
-sped dd 10 ;select between 10 and 20 for dificulty (10 - easy, 20 - hard);
+sped dd 20 ;select between 5, 10 and 20 for dificulty (5 - easy, 10 - medium, 20 - hard);
 shft dd 0
 shft1 dd 120
 shft2 dd 300
@@ -53,7 +55,7 @@ block_width equ 37
 block_height equ 40
 
 banana_width equ 37
-banana_height equ 31
+banana_height equ 40
 
 include digits.inc
 include letters.inc
@@ -338,7 +340,8 @@ draw proc
 	call memset
 	add esp, 12
 	
-   mov eax,sped
+	
+	mov eax,sped
    
 	add shft,eax
 	add shft1,eax
@@ -353,7 +356,6 @@ draw proc
 	add bana3,eax
 	add bana4,eax
 	add bana5,eax
-	
 	
 	cmp shft,area_height-block_height-10
 	jz zero
@@ -426,9 +428,12 @@ draw proc
 
 	past_zero:
 	
-
 game:
-
+	cmp end_game_c,1
+	je end_game
+	cmp end_game_c,2
+	je start_message
+	
 	mov ebx, 10
 	mov eax, counter
 	
@@ -451,16 +456,8 @@ game:
 	make_text_macro 'O',area,40,590
 	make_text_macro 'R',area,50,590
 	make_text_macro 'E',area,60,590
-	
-	line_vertical 0,0,area_height-20,096B00h
-	line_vertical area_width/6,0,area_height-20,096B00h
-	line_vertical area_width/6*2,0,area_height-20,096B00h
-	line_vertical area_width/6*3,0,area_height-20,096B00h
-	line_vertical area_width/6*4,0,area_height-20,096B00h
-	line_vertical area_width/6*5,0,area_height-20,096B00h
-	line_vertical area_width/6*6,0,area_height-20,096B00h
-	
 	;comparison;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
 	 mov eax, positionx
 	 mov ebx, 490
 	
@@ -473,7 +470,7 @@ game:
 	cmp eax,3+block_width
 	jg past_ver
 	
-	add positionx,1000000
+	add end_game_c,1
 	past_ver:
 	
 	cmp ebx,shft1
@@ -485,7 +482,7 @@ game:
 	cmp eax,43+block_width
 	jg past_ver1
 	
-	add positionx,1000000
+	add end_game_c,1
 	
 	past_ver1:
 	
@@ -498,7 +495,7 @@ game:
 	cmp eax,83+block_width
 	jg past_ver2
 	
-	add positionx,1000000
+	add end_game_c,1
 	past_ver2:
 	
 	cmp ebx,shft3
@@ -510,7 +507,7 @@ game:
 	cmp eax,123+block_width
 	jg past_ver3
 	
-	add positionx,1000000
+	add end_game_c,1
 	past_ver3:
 	
 	cmp ebx,shft4
@@ -522,7 +519,7 @@ game:
 	cmp eax,163+block_width
 	jg past_ver4
 	
-	add positionx,1000000
+	add end_game_c,1
 	past_ver4:
 	
 	cmp ebx,shft6
@@ -534,7 +531,7 @@ game:
 	cmp eax,3+block_width
 	jg past_ver6
 	
-	add positionx,1000000
+	add end_game_c,1
 	past_ver6:
 	
 	cmp ebx,shft5
@@ -542,7 +539,7 @@ game:
 	cmp eax,203
 	jl past_ver5
 	
-	add positionx,1000000
+	add end_game_c,1
 	past_ver5:
 	
 	cmp ebx,bana
@@ -636,26 +633,128 @@ game:
 	jge past_game
 	add positionx,40
 	jmp past_game
-		
 	
 past_game:
-make_block_macro area,3,shft
-make_block_macro area,40*1+3,shft1
-make_block_macro area,40*2+3,shft2
-make_block_macro area,40*3+3,shft3
-make_block_macro area,40*4+3,shft4
-make_block_macro area,40*5+3,shft5
-make_block_macro area,3,shft6
+	line_vertical 0,0,area_height-20,096B00h
+	line_vertical area_width/6,0  ,area_height-20,096B00h
+	line_vertical area_width/6*2,0,area_height-20,096B00h
+	line_vertical area_width/6*3,0,area_height-20,096B00h
+	line_vertical area_width/6*4,0,area_height-20,096B00h
+	line_vertical area_width/6*5,0,area_height-20,096B00h
+	line_vertical area_width/6*6,0,area_height-20,096B00h
+	
+	make_block_macro area,3     ,shft
+	make_block_macro area,40*1+3,shft1
+	make_block_macro area,40*2+3,shft2
+	make_block_macro area,40*3+3,shft3
+	make_block_macro area,40*4+3,shft4
+	make_block_macro area,40*5+3,shft5
+	make_block_macro area,3     ,shft6
 
-make_banana_macro area, 123,bana
-make_banana_macro area, 43,bana1
-make_banana_macro area, 163,bana2
-make_banana_macro area, 203,bana3
-make_banana_macro area, 3,bana4
-make_banana_macro area, 83,bana5
+	make_banana_macro area, 123,bana
+	make_banana_macro area, 43 ,bana1
+	make_banana_macro area, 163,bana2
+	make_banana_macro area, 203,bana3
+	make_banana_macro area, 3  ,bana4
+	make_banana_macro area, 83 ,bana5
 
+	make_monkey_macro area,positionx,positiony
+jmp final_draw
 
-make_monkey_macro area,positionx,positiony
+end_game:
+	make_monkey_macro area,100,100
+	
+	make_text_macro 'E',area,80,140
+	make_text_macro 'N',area,90,140
+	make_text_macro 'D',area,100,140
+	
+	make_text_macro 'G',area,120,140
+	make_text_macro 'A',area,130,140
+	make_text_macro 'M',area,140,140
+	make_text_macro 'E',area,150,140
+	
+	make_text_macro 'S',area,70,160 
+	make_text_macro 'C',area,80,160
+	make_text_macro 'O',area,90,160
+	make_text_macro 'R',area,100,160
+	make_text_macro 'E',area,110,160
+	
+	
+	make_text_macro 'P',area,30,180
+	make_text_macro 'R',area,40,180
+	make_text_macro 'E',area,50,180
+	make_text_macro 'S',area,60,180
+	make_text_macro 'S',area,70,180
+	
+	make_text_macro 'R',area,90,180
+	
+	make_text_macro 'T',area,110,180 
+	make_text_macro 'O',area,120,180
+	
+	make_text_macro 'R',area,140,180 
+	make_text_macro 'E',area,150,180
+	make_text_macro 'S',area,160,180
+	make_text_macro 'T',area,170,180
+	make_text_macro 'A',area,180,180
+	make_text_macro 'R',area,190,180 
+	make_text_macro 'T',area,200,180
+	
+	mov ebx, 10
+	mov eax, counter
+	
+	mov edx, 0
+	div ebx
+	add edx, '0'
+	make_text_macro edx, area, 150, 160
+
+	mov edx, 0
+	div ebx
+	add edx, '0'
+	make_text_macro edx, area, 140, 160
+	
+	mov edx, 0
+	div ebx
+	add edx, '0'
+	make_text_macro edx, area, 130, 160
+	
+	cmp dword ptr[ebp+arg2],'R'
+	je restart
+	jmp final_draw
+	
+	restart:
+	mov end_game_c,0
+	mov counter,0
+	jmp past_game
+	
+	
+	 
+	start_message:
+	make_monkey_macro area,100,100
+
+	make_text_macro 'P',area,40,180
+	make_text_macro 'R',area,50,180
+	make_text_macro 'E',area,60,180
+	make_text_macro 'S',area,70,180
+	make_text_macro 'S',area,80,180
+	
+	make_text_macro 'S',area,100,180
+	
+	make_text_macro 'T',area,120,180 
+	make_text_macro 'O',area,130,180
+	
+	make_text_macro 'S',area,150,180
+	make_text_macro 'T',area,160,180
+	make_text_macro 'A',area,170,180
+	make_text_macro 'R',area,180,180 
+	make_text_macro 'T',area,190,180
+	
+	cmp dword ptr[ebp+arg2],'S'
+	je start_c
+	jmp final_draw
+	
+	start_c:
+	mov end_game_c,0
+	jmp past_game
 
 final_draw:
 	popa
